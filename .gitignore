@@ -1,0 +1,32 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# virtual environments
+.venv/
+venv/
+env/
+
+# secrets — never commit
+.env
+.env.*
+!.env.example
+
+# LangGraph checkpoint / store artefacts produced while following the modules
+*.sqlite
+*.sqlite3
+*.db
+checkpoints/
+.lanark/
+langgraph.db
+
+# lab artefacts
+output/
+*.log
+.tmp/
+
+# editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
