@@ -180,4 +180,74 @@ Failure taxonomy ဆိုတာ agent ရဲ့ အမှားတွေကိ�
 အမှားအားလုံးကို "agent မှားတယ်" လို့ပဲ စာရင်းတင်ထားရင် ဘယ်နေရာကို အရင်ပြင်ရမလဲ ဆုံးဖြတ်လို့ မရပါ။ အမျိုးအစားခွဲမှ ပြင်ဆင်မှုရဲ့ ဦးစားပေးကို data-driven နဲ့ ဆုံးဖြတ်နိုင်ပါတယ်။
 
 ### ဘယ်လို အလုပ်လုပ်လဲ
-Trace
+Trace တစ်ခုချင်းစီကို လူ့စာရေးသူ (human annotator) က ဖတ်ပြီး အမှားကို တစ်မျိုးစီ အမျိုးအစားတပ်ပါတယ်။ ဒါကို ပုံမှန် လုပ်ဆောင်ပေးမယ့် အဆင့်တွေက —
+
+1. Eval run ကို ပြေးပြီး trace အားလုံးကို သိမ်းထားပါ။
+2. အမှားရှိတဲ့ trace တွေကို စစ်ထုတ်ပါ ( scorer result နဲ့)။
+3. တစ်ခုချင်းကို failure category တပ်ပါ (label)။
+4. Category အလိုက် အရေအတွက် စုစည်းပြီး ranking ထုတ်ပါ။
+
+Python နဲ့ ရေးမယ်ဆိုရင် ဒီလို ဖန်တီးနိုင်ပါတယ် —
+
+```python
+from collections import Counter
+
+# Failure categories used for labeling agent traces
+FAILURE_CATEGORIES = [
+    "wrong_tool_args",     # tool input arguments are incorrect
+    "unnecessary_call",    # agent calls a tool it did not need
+    "context_loss",        # agent forgets earlier context
+    "state_misread",       # agent reads the wrong state value
+    "refusal_failure",     # agent should refuse but does not
+    "other",
+]
+
+def label_traces(failed_traces):
+    """
+    Take a list of failed traces and return per-category counts.
+    In a real system a human (or an LLM judge) fills in the label
+    for each trace; here we show the aggregation step.
+    """
+    counter = Counter()
+    for trace in failed_traces:
+        # each trace dict is expected to carry a 'label' key
+        label = trace.get("label", "other")
+        if label not in FAILURE_CATEGORIES:
+            label = "other"
+        counter[label] += 1
+    return counter
+
+def prioritize(counter):
+    """
+    Sort categories by frequency so the team knows what to fix first.
+    """
+    return counter.most_common()
+
+if __name__ == "__main__":
+    failed = [
+        {"id": "t1", "label": "wrong_tool_args"},
+        {"id": "t2", "label": "context_loss"},
+        {"id": "t3", "label": "wrong_tool_args"},
+        {"id": "t4", "label": "refusal_failure"},
+        {"id": "t5", "label": "unnecessary_call"},
+    ]
+    counts = label_traces(failed)
+    for category, count in prioritize(counts):
+        print(f"{category}: {count}")
+```
+
+Output က ဒီလို ဖြစ်ပါလိမ့်မယ် —
+
+```text
+wrong_tool_args: 2
+context_loss: 1
+refusal_failure: 1
+unnecessary_call: 1
+```
+
+ဒီလိုဆို `wrong_tool_args` က အများဆုံးမို့ အရင်ပြင်ဆင်သင့်တဲ့ နေရာ ဖြစ်တယ်ဆိုတာ ချက်ချင်းမြင်နိုင်ပါတယ်။
+
+### သတိထားရမည့် အချက်များ
+- Label တွေကို နှစ်ယောက်ထက်ပိုတဲ့ လူတွေနဲ့ တပ်ရင် consistency ပိုကောင်းပါတယ် (inter-annotator agreement ကို တိုင်းတာပါ)။
+- Category စာရင်းက အချိန်ကြာလာရင် တဖြည်းဖြည်း ပြောင်းလဲနိုင်ပါတယ် — ဒါက သဘာ၀ပါ၊ ဒါပေမယ့် အလွန်အကျွံ ကွဲပြားသွားရင် အချက်အလက်တွေ နှိုင်းယှဉ်ဖို့ ခက်လာပါမယ်။
+- LLM judge နဲ့ label တပ်ရင်လည်း လူ့ sample တစ်ဝက်လောက်ကိုတော့ လက်တွေ့ စစ်ဆေးပေးဖို့ လိုအပ်ပါတယ်။

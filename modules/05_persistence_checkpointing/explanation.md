@@ -125,7 +125,7 @@ print(graph.invoke({"count": 100}, c2))  # thread-B is independent
 
 ### လက်တွေ့မှာ ဘာကြောင့် အရေးကြီးလဲ
 
-Chatbot တစ်ခုမှာ "session id" ဒါမှမှာ user id + conversation id ကို thread_id အဖြစ် သုံးတာ အဓိက pattern ပါ။ thread_id ကို မှားယွင်း share လုပ်မိရင် user တစ်ယောက်ရဲ့ အချက်အလက်တွေ အခြားသူဆီ ယိုစိမ့်သွားနိုင်လို့  보안အရလည်း အရေးကြီးပါတယ်။
+Chatbot တစ်ခုမှာ "session id" ဒါမှမှာ user id + conversation id ကို thread_id အဖြစ် သုံးတာ အဓိက pattern ပါ။ thread_id ကို မှားယွင်း share လုပ်မိရင် user တစ်ယောက်ရဲ့ အချက်အလက်တွေ အခြားသူဆီ ယိုစိမ့်သွားနိုင်လို့  လုံခြုံရေးအရလည်း အရေးကြီးပါတယ်။
 
 ## ၄။ Resuming after failure
 
